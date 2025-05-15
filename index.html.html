@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario Académico 2025 - Colegio María Auxiliadora</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Un gris azulado claro para el fondo general */
+        }
+        /* Colores Institucionales y de Eventos */
+        :root {
+            --color-institucional-rojo: #D81B22; /* Festivos / Hoy */
+            --color-institucional-amarillo: #FDD835; /* Receso */
+            --color-institucional-azul: #1E88E5; /* Evento General por defecto */
+            --color-institucional-morado: #8E24AA; /* Desarrollo Institucional */
+            --color-institucional-verde: #43A047; /* PESCC, Democracia, PRAES */
+            --color-naranja: #F57C00; /* Escuela de Padres, Reuniones Padres */
+            --color-rosa: #E91E63; /* Actividades especiales, Conmemoraciones, Izadas */
+            --color-cyan: #00BCD4; /* Inducción, Comités, Consejos */
+            --color-teal: #009688; /* Inicio/Fin Periodo, Entregas Informes/Preinformes */
+            --color-rojo-simulacro: #f44336; /* Semanas de Simulacro */
+            --color-indigo: #3F51B5; /* Eventos ASPE */
+
+            --color-periodo-1: #e6fffa; 
+            --color-periodo-2: #e0f2fe; 
+            --color-periodo-3: #eef2ff; 
+            --color-periodo-4: #ffe4e6; 
+        }
+        .event-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+            display: inline-block;
+        }
+        .holiday { background-color: var(--color-institucional-rojo); }
+        .development { background-color: var(--color-institucional-morado); }
+        .recess { background-color: var(--color-institucional-amarillo); }
+        .event { background-color: var(--color-institucional-azul); } 
+        .pescc { background-color: var(--color-institucional-verde); }
+        .simulacro { background-color: var(--color-rojo-simulacro); }
+        .reunion { background-color: var(--color-naranja); }
+        .especial { background-color: var(--color-rosa); }
+        .comite { background-color: var(--color-cyan); } /* Para Consejos, Comités de Evaluación */
+        .periodo-info { background-color: var(--color-teal); }
+        .aspe-event { background-color: var(--color-indigo); }
+
+
+        .period-1-bg { background-color: var(--color-periodo-1); }
+        .period-2-bg { background-color: var(--color-periodo-2); }
+        .period-3-bg { background-color: var(--color-periodo-3); }
+        .period-4-bg { background-color: var(--color-periodo-4); }
+
+        .calendar-day {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .today {
+            color: var(--color-institucional-rojo) !important; 
+            font-weight: 700; 
+            outline: 1px solid var(--color-institucional-rojo); 
+            outline-offset: 1px; 
+            padding: 2px; 
+        }
+        .day-number {
+            width: 28px; 
+            height: 28px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-body::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .modal-body::-webkit-scrollbar-track {
+            background-color: #edf2f7;
+            border-radius: 4px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .legend-color-box {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
+        <header class="mb-8 text-center">
+            <img src="images.png" alt="Logo Colegio María Auxiliadora" class="mx-auto mb-4 h-20 w-20 object-contain rounded-full shadow-md" onerror="this.onerror=null; this.src='https://placehold.co/80x80/E8E8E8/B2B2B2?text=MA';">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800" style="color: var(--color-institucional-azul);">Calendario Académico 2025</h1>
+            <p class="text-lg text-gray-600">Colegio María Auxiliadora de Cartago</p>
+        </header>
+
+        <div class="flex justify-between items-center mb-6 p-4 bg-white rounded-lg shadow-md">
+            <button id="prevMonth" class="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg transition-colors">&lt; Anterior</button>
+            <h2 id="currentMonthYear" class="text-2xl font-semibold text-gray-700" style="color: var(--color-institucional-azul);"></h2>
+            <button id="nextMonth" class="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg transition-colors">Siguiente &gt;</button>
+        </div>
+
+        <div id="calendar" class="grid grid-cols-7 gap-1 sm:gap-2 bg-white p-4 rounded-lg shadow-lg">
+            </div>
+
+        <div class="mt-8 p-6 bg-white rounded-lg shadow-md">
+            <h3 class="text-xl font-semibold mb-4 text-gray-700" style="color: var(--color-institucional-azul);">Leyenda</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="legend-item"><div class="legend-color-box holiday"></div><span>Día Festivo</span></div>
+                <div class="legend-item"><div class="legend-color-box development"></div><span>Desarrollo Institucional</span></div>
+                <div class="legend-item"><div class="legend-color-box recess"></div><span>Receso Estudiantil</span></div>
+                <div class="legend-item"><div class="legend-color-box event"></div><span>Evento Institucional (General)</span></div>
+                <div class="legend-item"><div class="legend-color-box pescc"></div><span>PESCC / Democracia / PRAES</span></div>
+                <div class="legend-item"><div class="legend-color-box simulacro"></div><span>Semana de Simulacro</span></div>
+                <div class="legend-item"><div class="legend-color-box reunion"></div><span>Reuniones / Escuela de Padres</span></div>
+                <div class="legend-item"><div class="legend-color-box especial"></div><span>Act. Especial / Conmemoración</span></div>
+                <div class="legend-item"><div class="legend-color-box comite"></div><span>Comités / Consejos / Inducción</span></div>
+                <div class="legend-item"><div class="legend-color-box periodo-info"></div><span>Info Periodo / Entregas</span></div>
+                <div class="legend-item"><div class="legend-color-box aspe-event"></div><span>Eventos ASPE</span></div>
+                <div class="legend-item"><div class="legend-color-box period-1-bg"></div><span>Primer Periodo</span></div>
+                <div class="legend-item"><div class="legend-color-box period-2-bg"></div><span>Segundo Periodo</span></div>
+                <div class="legend-item"><div class="legend-color-box period-3-bg"></div><span>Tercer Periodo</span></div>
+                <div class="legend-item"><div class="legend-color-box period-4-bg"></div><span>Cuarto Periodo</span></div>
+            </div>
+        </div>
+         <div class="mt-8 p-6 bg-white rounded-lg shadow-md">
+            <h3 class="text-xl font-semibold mb-4 text-gray-700" style="color: var(--color-institucional-azul);">Eventos Generales y Observaciones</h3>
+            <ul id="generalEventsList" class="list-disc list-inside text-gray-700 space-y-1">
+                </ul>
+            <p class="mt-4 text-sm text-gray-500">Creado por: Profesor Néstor Fabio Montoya Palacios</p>
+        </div>
+    </div>
+
+    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden modal">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col modal-content transform scale-95">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalDate" class="text-xl font-semibold text-gray-800"></h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="modalBody" class="overflow-y-auto modal-body space-y-3">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS ACADÉMICOS 2025 ---
+        const academicEvents2025 = [
+            // FESTIVOS NACIONALES (type: 'holiday')
+            { date: "2025-01-01", type: "holiday", description: "Año Nuevo" },
+            { date: "2025-01-06", type: "holiday", description: "Reyes Magos" },
+            { date: "2025-03-24", type: "holiday", description: "Día de San José" },
+            { date: "2025-04-17", type: "holiday", description: "Jueves Santo" },
+            { date: "2025-04-18", type: "holiday", description: "Viernes Santo" },
+            { date: "2025-05-01", type: "holiday", description: "Día del Trabajo" },
+            { date: "2025-06-02", type: "holiday", description: "Ascensión de Jesús" },
+            { date: "2025-06-23", type: "holiday", description: "Corpus Christi" },
+            { date: "2025-06-30", type: "holiday", description: "Sagrado Corazón de Jesús" },
+            { date: "2025-07-20", type: "holiday", description: "Independencia de Colombia" },
+            { date: "2025-08-07", type: "holiday", description: "Batalla de Boyacá" },
+            { date: "2025-08-18", type: "holiday", description: "Asunción de la Virgen" },
+            { date: "2025-10-13", type: "holiday", description: "Día de la Raza" },
+            { date: "2025-11-03", type: "holiday", description: "Todos los Santos" },
+            { date: "2025-11-17", type: "holiday", description: "Independencia de Cartagena" },
+            { date: "2025-12-08", type: "holiday", description: "Inmaculada Concepción" },
+            { date: "2025-12-25", type: "holiday", description: "Navidad" },
+
+            // PERIODOS ESCOLARES (type: 'period')
+            { startDate: "2025-01-20", endDate: "2025-04-11", type: "period", periodNumber: 1, description: "Primer Periodo (12 sem). Evaluación Institucional. Pruebas SABER. Nivelaciones y preinformes a mitad de periodo. Entrega de boletines al final." },
+            { startDate: "2025-04-21", endDate: "2025-06-27", type: "period", periodNumber: 2, description: "Segundo Periodo (10 sem). Evaluación Institucional. Pruebas SABER. Nivelaciones y preinformes a mitad de periodo. Entrega de boletines al final." },
+            { startDate: "2025-07-21", endDate: "2025-09-26", type: "period", periodNumber: 3, description: "Tercer Periodo (10 sem). Evaluación Institucional. Pruebas SABER. Nivelaciones y preinformes a mitad de periodo. Entrega de boletines al final." },
+            { startDate: "2025-10-13", endDate: "2025-11-28", type: "period", periodNumber: 4, description: "Cuarto Periodo (7 sem). Evaluación Institucional. Pruebas SABER. Nivelaciones y preinformes a mitad de periodo. Entrega de boletines al final." },
+
+            // SEMANAS DE DESARROLLO INSTITUCIONAL (type: 'development')
+            { startDate: "2025-01-06", endDate: "2025-01-19", type: "development", description: "Semana de Desarrollo Institucional" },
+            { startDate: "2025-04-14", endDate: "2025-04-20", type: "development", description: "Semana de Desarrollo Institucional (Coincide con Semana Santa)" },
+            { startDate: "2025-10-06", endDate: "2025-10-12", type: "development", description: "Semana de Desarrollo Institucional" },
+            { startDate: "2025-12-01", endDate: "2025-12-07", type: "development", description: "Semana de Desarrollo Institucional" },
+
+            // RECESO ESTUDIANTIL (type: 'recess')
+            { startDate: "2025-01-06", endDate: "2025-01-19", type: "recess", description: "Receso Estudiantil (Inicio de año)" },
+            { startDate: "2025-04-14", endDate: "2025-04-20", type: "recess", description: "Receso Estudiantil (Semana Santa)" },
+            { startDate: "2025-06-30", endDate: "2025-07-20", type: "recess", description: "Receso Estudiantil (Mitad de año)" },
+            { startDate: "2025-10-06", endDate: "2025-10-12", type: "recess", description: "Receso Estudiantil (Semana de Octubre)" },
+            { startDate: "2025-12-01", endDate: "2025-12-07", type: "recess", description: "Receso Estudiantil (Diciembre)" },
+            { startDate: "2025-12-08", endDate: "2026-01-04", type: "recess", description: "Receso Estudiantil (Fin de año)" },
+
+            // --- EVENTOS ESPECÍFICOS DEL COLEGIO (DEL PDF "Calendario_mes por mes.pdf") ---
+            // ENERO 2025
+            { date: "2025-01-08", type: "event", category: "comite", description: "Instalación comité de convivencia e inclusión", colorClassModal: "bg-cyan-100 border-cyan-300" },
+            { date: "2025-01-20", type: "event", category: "periodo-info", description: "Inicio I periodo", colorClassModal: "bg-teal-100 border-teal-300" },
+            { startDate: "2025-01-21", endDate: "2025-01-24", type: "event", category: "comite", description: "Inducción estudiantes", colorClassModal: "bg-cyan-100 border-cyan-300" },
+            { date: "2025-01-27", type: "event", category: "reunion", description: "Escuela de Padres. Orientación escolar", colorClassModal: "bg-orange-100 border-orange-300" },
+            { date: "2025-01-28", type: "event", category: "reunion", description: "10 y 11. Escuela de Padres. Orientación escolar", colorClassModal: "bg-orange-100 border-orange-300" },
+            { date: "2025-01-29", type: "event", category: "reunion", description: "Transición. Escuela de Padres. Orientación escolar", colorClassModal: "bg-orange-100 border-orange-300" },
+            { date: "2025-01-30", type: "event", category: "reunion", description: "Reunión de padres 6, 7, 8, 9. Elección de representante de grupo.", colorClassModal: "bg-orange-100 border-orange-300" },
+            { date: "2025-01-31", type: "event", category: "reunion", description: "1, 2, 3, 4, 5. Escuela de Padres. Orientación escolar.", colorClassModal: "bg-orange-100 border-orange-300" },
+
+            // FEBRERO 2025
+            { date: "2025-02-03", type: "event", category: "pescc", description: "CONTRIBUCIONES 1278. Campaña para personería y contraloría. Proyecto Democracia.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-04", type: "event", category: "pescc", description: "Campaña para personería y contraloría. Proyecto Democracia. Escuela de padres 2", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-05", type: "event", category: "pescc", description: "BANDERA Primaria. Campaña para personería y contraloría. Proyecto Democracia.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-06", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10° y 11°. Campaña para personería y contraloría. Proyecto Democracia.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-02-07", type: "event", category: "pescc", description: "Dirección de grupo. Campaña para personería y contraloría. Proyecto Democracia.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-10", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-11", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-12", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC. Capacitación simulacros y plataforma.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-14", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-17", type: "event", category: "especial", description: "Ceremonia de Punteros. Convivencia inicio de año. PESCC", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-02-18", type: "event", category: "event", description: "Centros de interes PTA", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-02-19", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-20", type: "event", category: "pescc", description: "Elección de personería y contraloría. Proyecto Democracia.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-02-21", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10° y 11°. Convivencia inicio de año. PESCC", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-02-24", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Dirección de grupo. Convivencia inicio de año. PESCC", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-02-25", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Reunión comités con estudiantes. 11° Convivencia inicio", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-02-26", type: "event", category: "simulacro", description: "PERTENENCIA GRADOS 6° Y 11°. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-02-27", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Lanzamiento un mundo de opciones. PESCC", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-02-28", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Convivencia inicio de año. PESCC.", colorClassModal: "bg-red-100 border-red-300"},
+
+            // MARZO 2025
+            { date: "2025-03-03", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-03-04", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-03-05", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-03-06", type: "event", category: "periodo-info", description: "ENTREGA DE PREINFORME", colorClassModal: "bg-teal-100 border-teal-300"},
+            { date: "2025-03-07", type: "event", category: "especial", description: "Conmemoración día de la mujer. PESCC", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-03-10", type: "event", category: "simulacro", description: "Simulacro externo de 3°. Convivencia inicio de año. PESCC", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-03-11", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10° y 11°.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-03-12", type: "event", category: "especial", description: "Celebración municipal de la convivencia. PESCC", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-03-14", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-03-17", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-03-18", type: "event", category: "pescc", description: "Convivencia inicio de año. PESCC", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-03-19", type: "event", category: "especial", description: "Conmemoración día del hombre. PESCC", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-03-21", type: "event", category: "event", description: "Centros de interes PTA. Convivencia inicio de año. PESCC", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-03-25", type: "event", category: "simulacro", description: "COSEJO ACADÉMICO. Semana de Simulacro interno 6° a 11°. Convivencia inicio de año. PESCC. Actividad pedagógica docente.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-03-26", type: "event", category: "comite", description: "CONSEJO DIRECTIVO. Eucaristia. Semana de Simulacro interno 6° a 11°. Dirección de grupo.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-03-27", type: "event", category: "especial", description: "Izada de Bandera valor RESPONSABILIDAD GRADOS 4° Y 6°. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-03-28", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-03-31", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10°y 11°. Convivencia inicio de año. PESCC", colorClassModal: "bg-orange-100 border-orange-300"},
+
+            // ABRIL 2025
+            { date: "2025-04-01", type: "event", category: "especial", description: "Mundialito de Voleibol. Todo el mes. Tiempo Libre.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-04-07", type: "event", category: "aspe-event", description: "ASPE.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-04-08", type: "event", category: "aspe-event", description: "ASPE.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-04-09", type: "event", category: "aspe-event", description: "ASPE. Comité de convivencia y C de inclusión.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-04-10", type: "event", category: "aspe-event", description: "ASPE. Vallecaucanidad. Proyecto Democracia.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-04-11", type: "event", category: "aspe-event", description: "ASPE. Reunión docentes áreas ICFES 10°y 11°. (Finalización I periodo)", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-04-21", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. (Inicio II periodo)", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-04-22", type: "event", category: "event", description: "Centros de interes PTA.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-04-23", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Conmemoración día del idioma, Comité de lenguaje.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-04-24", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Dirección de grupo.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-04-25", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Celebración Primaria: día del niño. Cierre PESCC: Bachillerato-Persona. Finalización I periodo (evento específico).", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-04-28", type: "event", category: "comite", description: "CONSEJO ACADEMICO. (Inicio II periodo según PDF, principal es 21/04)", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-04-29", type: "event", category: "comite", description: "CONSEJO DIRECTIVO. Cierre de plataforma calificaciones.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-04-30", type: "event", category: "comite", description: "Comisión de evaluación.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+
+            // MAYO 2025
+            { date: "2025-05-02", type: "event", category: "periodo-info", description: "ENTREGA DE INFORMES. Mundialito de Baloncesto, Inicio. Tiempo Libre.", colorClassModal: "bg-teal-100 border-teal-300"},
+            { date: "2025-05-07", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10°y 11°.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { startDate: "2025-05-08", endDate: "2025-05-09", type: "event", category: "event", description: "1° Revisión libros reglamentarios.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-05-13", type: "event", category: "event", description: "Dirección de grupo.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { startDate: "2025-05-15", endDate: "2025-05-16", type: "event", category: "especial", description: "Mundialito de Baloncesto. Finalización. Tiempo Libre.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-05-19", type: "event", category: "event", description: "Centros de interes PTA.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-05-20", type: "event", category: "pescc", description: "Dia de la Afrocolombianidad. Proyecto Democracia.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-05-22", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10°y 11°.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-05-23", type: "event", category: "especial", description: "Eucaristia Maria Auxiliadora.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-05-26", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-05-27", type: "event", category: "simulacro", description: "CONSEJO ACADÉMICO. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-05-28", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-05-29", type: "event", category: "simulacro", description: "HONESTIDAD. GRADOS 3° Y 10°. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-05-30", type: "event", category: "simulacro", description: "CONSEJO DIRECTIVO. Dirección de grupo. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            
+            // JUNIO 2025
+            { date: "2025-06-02", type: "event", category: "especial", description: "Mundialito de Futbol. Inicio. Tiempo Libre. (Festivo Ascensión)", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-06-03", type: "event", category: "especial", description: "Mundialito de fútboltiempo libre.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-06-05", type: "event", category: "pescc", description: "Conmemoración Dia del Medio Ambiente. PRAES.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-06-10", type: "event", category: "comite", description: "Comité de convivencia y C de inclusión.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-06-12", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10°y 11°.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-06-13", type: "event", category: "periodo-info", description: "ENTREGA DE PREINFORME.", colorClassModal: "bg-teal-100 border-teal-300"},
+            { date: "2025-06-17", type: "event", category: "event", description: "Dirección de grupo.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-06-18", type: "event", category: "comite", description: "CONSEJO DIRECTIVO.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-06-19", type: "event", category: "comite", description: "CONSEJO ACADEMICO.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-06-20", type: "event", category: "especial", description: "Mundialito de Futbol. Finalización. Tiempo Libre.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-06-24", type: "event", category: "simulacro", description: "Semana de Simulacro.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-06-25", type: "event", category: "event", description: "Centros de interes PTA.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-06-26", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. 1° Simulacro. Gestion de riesgo.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-06-27", type: "event", category: "especial", description: "Valor AGRADECIMIENTO, GRADOS 2° Y 7°. Semana de Simulacro interno 6°. (Finalización II periodo)", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-06-30", type: "event", category: "recess", description: "Inicio de vacaciones (Festivo Sagrado Corazón)", colorClassModal: "bg-yellow-100 border-yellow-300"},
+
+            // JULIO 2025
+            { date: "2025-07-21", type: "event", category: "reunion", description: "Reunión áreas ICFES 10°y 11°. Dirección de grupo. (Inicio III periodo)", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-07-23", type: "event", category: "event", description: "Centros de interes PTA.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-07-28", type: "event", category: "aspe-event", description: "ASPE. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-07-29", type: "event", category: "aspe-event", description: "ASPE. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-07-30", type: "event", category: "aspe-event", description: "ASPE. Semana de Simulacro interno 6° a 11°. Reunión comités con estudiantes.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-07-31", type: "event", category: "simulacro", description: "Simulacro interno 6° a 11°. Primaria y bachillerato: familia y pareja. Eucaristia.", colorClassModal: "bg-red-100 border-red-300"},
+
+            // AGOSTO 2025
+            { date: "2025-08-01", type: "event", category: "aspe-event", description: "ASPE. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-08-04", type: "event", category: "reunion", description: "Escuela de padres. Orientación Escolar.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-08-05", type: "event", category: "reunion", description: "Escuela de padres. Orientación Escolar.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-08-06", type: "event", category: "especial", description: "Conmemoración batalla de Boyaca (independencia). Reunión docentes áreas ICFES 10°y 11°. Escuela de padres. Orientación Escolar.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-08-11", type: "event", category: "event", description: "Dirección de grupo.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-08-12", type: "event", category: "reunion", description: "Escuela de padres. Orientación Escolar.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-08-13", type: "event", category: "reunion", description: "Escuela de padres. Orientación Escolar.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-08-14", type: "event", category: "comite", description: "CONSEJO DIRECTIVO. Escuela de padres. Orientación Escolar.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-08-15", type: "event", category: "pescc", description: "Foro ciudadano. Proyecto Democracia. Finalización II periodo (evento específico).", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-08-19", type: "event", category: "comite", description: "CONSEJO ACADEMICO. Escuela de padres. Orientación Escolar. (Inicio III periodo según PDF, principal es 21/07)", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-08-20", type: "event", category: "comite", description: "Comisión de evaluación. Escuela de padres. Orientación Escolar.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-08-21", type: "event", category: "reunion", description: "Centros de interes PTA. Escuela de padres. Orientación Escolar.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-08-22", type: "event", category: "periodo-info", description: "REUNION DE PADRES Y ENTREGA DE INFORMES. Escuela de padres. Orientación Escolar.", colorClassModal: "bg-teal-100 border-teal-300"},
+            { date: "2025-08-25", type: "event", category: "simulacro", description: "Reunión docentes áreas ICFES 10°y 11°. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-08-26", type: "event", category: "especial", description: "Izada de Bandera valor SOLIDARIDAD, GRADOS 1° Y 8°. Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-08-27", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-08-28", type: "event", category: "simulacro", description: "Eucaristia. Semana de Simulacro interno 6° a 11°. Dirección de grupo.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-08-29", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. 2° Revisión libros reglamentarios.", colorClassModal: "bg-red-100 border-red-300"},
+
+            // SEPTIEMBRE 2025
+            { date: "2025-09-01", type: "event", category: "pescc", description: "Semana andina. PESCC.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-02", type: "event", category: "pescc", description: "Semana andina. PESCC. Día de los Derechos Humanos.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-03", type: "event", category: "pescc", description: "Semana andina. PESCC.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-04", type: "event", category: "pescc", description: "Semana andina. Cierre. PESCC.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-05", type: "event", category: "comite", description: "Comité de convivencia y Comité de inclusión.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-09-12", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10°y 11°.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-09-15", type: "event", category: "pescc", description: "Convivencia por grados. Todo el mes. Pastoral. Dirección de grupo.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-16", type: "event", category: "pescc", description: "Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-17", type: "event", category: "pescc", description: "Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-18", type: "event", category: "pescc", description: "Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-19", type: "event", category: "especial", description: "Olimpiadas por la vida. Primaria. Tiempo libre. Convivencia Pastoral.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-09-22", type: "event", category: "event", description: "Centros de interes PTA. Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-09-23", type: "event", category: "comite", description: "CONSEJO DIRECTIVO. Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-09-24", type: "event", category: "comite", description: "CONSEJO ACADEMICO. Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-09-25", type: "event", category: "pescc", description: "Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-green-100 border-green-300"},
+            { date: "2025-09-26", type: "event", category: "especial", description: "Dia Talen Show. (Finalización III periodo)", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-09-29", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-09-30", type: "event", category: "especial", description: "Izada de Bandera valor AMOR, AMISTAD Y PAZ GRADOS 0° y 9°. Semana de Simulacro interno 6° a 11°. Convivencia Pastoral. Dirección de grupo.", colorClassModal: "bg-pink-100 border-pink-300"},
+
+            // OCTUBRE 2025
+            { date: "2025-10-01", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Convivencia por grados. Todo el mes. Pastoral.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-10-02", type: "event", category: "periodo-info", description: "PREINFORME. Semana de Simulacro interno 6° a 11°. Convivencia por grados. Todo el mes.", colorClassModal: "bg-teal-100 border-teal-300"},
+            { date: "2025-10-03", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Eucaristia San Francisco de Asis. Pastoral.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-10-15", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10°y 11°. (Inicio IV periodo es 13/10)", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-10-17", type: "event", category: "event", description: "Centros de interes PTA Producto final.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-10-20", type: "event", category: "comite", description: "CONSEJO DIRECTIVO.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-10-21", type: "event", category: "especial", description: "Dirección de grupo. Feria STEAM.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-10-22", type: "event", category: "especial", description: "Feria STEAM.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-10-24", type: "event", category: "especial", description: "Dia de bilingüismo. Primaria. Tiempo libre.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-10-27", type: "event", category: "comite", description: "CONSEJO ACADEMICO.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-10-28", type: "event", category: "comite", description: "Comité de convivencia y C de inclusión.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-10-30", type: "event", category: "reunion", description: "Reunión docentes áreas ICFES 10°y 11°.", colorClassModal: "bg-orange-100 border-orange-300"},
+            { date: "2025-10-31", type: "event", category: "pescc", description: "Proyecto de vida. Tiempo libre. Sociedad Cierre PESCC.", colorClassModal: "bg-green-100 border-green-300"},
+
+            // NOVIEMBRE 2025
+            { date: "2025-11-04", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-11-05", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Dirección de grupo.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-11-06", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Reunión comités con estudiantes.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-11-07", type: "event", category: "simulacro", description: "Semana de Simulacro interno 6° a 11°. Entrega de simbolos 10°y 11°.", colorClassModal: "bg-red-100 border-red-300"},
+            { date: "2025-11-10", type: "event", category: "aspe-event", description: "ASPE. Novena de navidad. Inicio. Pastoral.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-11-11", type: "event", category: "aspe-event", description: "ASPE.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-11-12", type: "event", category: "aspe-event", description: "ASPE.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-11-13", type: "event", category: "aspe-event", description: "ASPE.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-11-14", type: "event", category: "aspe-event", description: "ASPE.", colorClassModal: "bg-indigo-100 border-indigo-300"},
+            { date: "2025-11-18", type: "event", category: "comite", description: "Comisión de evaluación.", colorClassModal: "bg-cyan-100 border-cyan-300"},
+            { date: "2025-11-21", type: "event", category: "especial", description: "Día del estudiante. Tiempo libre.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-11-24", type: "event", category: "event", description: "Jornada de limpieza e inventario general.", colorClassModal: "bg-blue-100 border-blue-300"},
+            { date: "2025-11-25", type: "event", category: "periodo-info", description: "REUNIÓN DE PADRES Y ENTREGA DE INFORMES.", colorClassModal: "bg-teal-100 border-teal-300"},
+            { date: "2025-11-26", type: "event", category: "especial", description: "Finalización Periodo (Premiación Estudiantes).", colorClassModal: "bg-pink-100 border-pink-300"}, // Ajustado "III periodo" a genérico
+            { date: "2025-11-27", type: "event", category: "especial", description: "Clausuras 0°, 5° y 9°. Eucaristia para undécimo.", colorClassModal: "bg-pink-100 border-pink-300"},
+            { date: "2025-11-28", type: "event", category: "especial", description: "Grados undécimo. (Finalización IV periodo)", colorClassModal: "bg-pink-100 border-pink-300"},
+
+            // DICIEMBRE 2025
+            { date: "2025-12-01", type: "event", category: "development", description: "D. INSTITUCIONAL. Matriculas antiguos 1°, 6° y 10°.", colorClassModal: "bg-purple-100 border-purple-300"},
+            // D. Institucional y Receso cubren del 1 al 7. Festivo el 8.
+            
+            // Eventos generales (no tienen fecha específica, se listan aparte)
+            { type: "general_event", description: "Simulacros Pruebas SABER: Durante los cuatro periodos." },
+            { type: "general_event", description: "Feria de Proyectos STEAM: Octubre 21-22." },
+            { type: "general_event", description: "Nivelaciones y preinformes: En mitad de cada periodo." },
+            { type: "general_event", description: "Reuniones de entrega de boletines con padres: Al finalizar cada periodo." }
+        ];
+
+        // --- LÓGICA DEL CALENDARIO ---
+        const calendarEl = document.getElementById('calendar');
+        const currentMonthYearEl = document.getElementById('currentMonthYear');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const eventModal = document.getElementById('eventModal');
+        const modalDateEl = document.getElementById('modalDate');
+        const modalBodyEl = document.getElementById('modalBody');
+        const closeModalBtn = document.getElementById('closeModal');
+        const generalEventsListEl = document.getElementById('generalEventsList');
+
+        let currentDate = new Date(2025, 0, 1); 
+
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+        function renderCalendar() {
+            calendarEl.innerHTML = ''; 
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
+
+            dayNames.forEach(day => {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'text-center font-semibold text-gray-600 py-2 text-sm sm:text-base';
+                dayEl.textContent = day;
+                calendarEl.appendChild(dayEl);
+            });
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'border rounded-md p-1 sm:p-2';
+                calendarEl.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day border rounded-md p-1 sm:p-2 text-center cursor-pointer min-h-[70px] sm:min-h-[90px] flex flex-col items-center justify-start relative';
+                
+                const dayNumberEl = document.createElement('span');
+                dayNumberEl.textContent = day;
+                dayNumberEl.className = 'day-number text-xs sm:text-sm mb-1';
+                
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const todayDate = new Date(); 
+                if (year === todayDate.getFullYear() && month === todayDate.getMonth() && day === todayDate.getDate()) {
+                    dayNumberEl.classList.add('today'); 
+                }
+                dayCell.appendChild(dayNumberEl);
+                
+                const eventsOnDay = getEventsForDate(dateStr);
+                let periodClass = '';
+
+                const currentDayDate = new Date(dateStr + "T00:00:00"); 
+                academicEvents2025.filter(ev => ev.type === 'period').forEach(p => {
+                    const startDate = new Date(p.startDate + "T00:00:00");
+                    const endDate = new Date(p.endDate + "T00:00:00");
+                    if (currentDayDate >= startDate && currentDayDate <= endDate) {
+                        periodClass = `period-${p.periodNumber}-bg`;
+                    }
+                });
+                if (periodClass) {
+                    dayCell.classList.add(periodClass);
+                }
+
+                const dotsContainer = document.createElement('div');
+                dotsContainer.className = 'flex flex-wrap justify-center mt-1 items-center';
+
+                let eventCategoriesOnDay = new Set();
+                eventsOnDay.forEach(event => {
+                    if (event.type !== 'period' && event.type !== 'general_event') {
+                       eventCategoriesOnDay.add(event.category || event.type); 
+                    }
+                });
+                
+                const maxVisibleDots = 4;
+                let dotsAdded = 0;
+                eventCategoriesOnDay.forEach(cat => {
+                    if (dotsAdded < maxVisibleDots) {
+                        const dot = document.createElement('span');
+                        dot.className = `event-dot ${cat}`; 
+                        dotsContainer.appendChild(dot);
+                        dotsAdded++;
+                    }
+                });
+                 if (eventCategoriesOnDay.size > maxVisibleDots) {
+                    const moreDotsIndicator = document.createElement('span');
+                    moreDotsIndicator.className = 'text-xs text-gray-500 ml-1';
+                    moreDotsIndicator.textContent = `+${eventCategoriesOnDay.size - maxVisibleDots}`;
+                    dotsContainer.appendChild(moreDotsIndicator);
+                }
+
+                dayCell.appendChild(dotsContainer);
+
+                if (eventsOnDay.length > 0) {
+                    dayCell.addEventListener('click', () => showEventModal(dateStr, eventsOnDay));
+                }
+                calendarEl.appendChild(dayCell);
+            }
+            updateNavigationButtons();
+        }
+
+        function getEventsForDate(dateStr) {
+            const targetDate = new Date(dateStr + "T00:00:00");
+            return academicEvents2025.filter(event => {
+                if (event.type === 'general_event') return false;
+                if (event.date) {
+                    return event.date === dateStr;
+                }
+                if (event.startDate && event.endDate) {
+                    const startDate = new Date(event.startDate + "T00:00:00");
+                    const endDate = new Date(event.endDate + "T00:00:00");
+                    return targetDate >= startDate && targetDate <= endDate;
+                }
+                return false;
+            }).sort((a, b) => { 
+                const order = { holiday: 1, development: 2, recess: 3, period: 4, event: 5 }; // Prioridad
+                return (order[a.type] || 99) - (order[b.type] || 99);
+            });
+        }
+
+        function showEventModal(dateStr, events) {
+            const displayDate = new Date(dateStr + "T00:00:00");
+            modalDateEl.textContent = `${dayNames[displayDate.getDay()]}, ${displayDate.getDate()} de ${monthNames[displayDate.getMonth()]} de ${displayDate.getFullYear()}`;
+            modalBodyEl.innerHTML = '';
+
+            if (events.length === 0) {
+                modalBodyEl.innerHTML = '<p class="text-gray-600">No hay eventos programados para este día.</p>';
+            } else {
+                events.forEach(event => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'p-3 rounded-md shadow-sm border';
+                    
+                    let styleClasses = '';
+                    let textColorClass = 'text-gray-800';
+
+                    if (event.colorClassModal) {
+                        styleClasses = event.colorClassModal;
+                        const match = event.colorClassModal.match(/bg-([a-z]+)-(\d+)/);
+                        if (match && match[1]) {
+                           textColorClass = `text-${match[1]}-700`; 
+                        }
+                    } else { // Fallback a colores por tipo/categoría si no hay colorClassModal
+                        switch(event.type) {
+                            case 'holiday': styleClasses = 'bg-red-100 border-red-300'; textColorClass = 'text-red-700'; break;
+                            case 'development': styleClasses = 'bg-purple-100 border-purple-300'; textColorClass = 'text-purple-700'; break;
+                            case 'recess': styleClasses = 'bg-yellow-100 border-yellow-300'; textColorClass = 'text-yellow-700'; break;
+                            case 'period': 
+                                styleClasses = `period-${event.periodNumber}-bg border-gray-400`; 
+                                textColorClass = 'text-gray-700';
+                                break;
+                            case 'event': 
+                                switch(event.category) {
+                                    case 'pescc': styleClasses = 'bg-green-100 border-green-300'; textColorClass = 'text-green-700'; break;
+                                    case 'simulacro': styleClasses = 'bg-red-100 border-red-300'; textColorClass = 'text-red-700'; break;
+                                    case 'reunion': styleClasses = 'bg-orange-100 border-orange-300'; textColorClass = 'text-orange-700'; break;
+                                    case 'especial': styleClasses = 'bg-pink-100 border-pink-300'; textColorClass = 'text-pink-700'; break;
+                                    case 'comite': styleClasses = 'bg-cyan-100 border-cyan-300'; textColorClass = 'text-cyan-700'; break;
+                                    case 'periodo-info': styleClasses = 'bg-teal-100 border-teal-300'; textColorClass = 'text-teal-700'; break;
+                                    case 'aspe-event': styleClasses = 'bg-indigo-100 border-indigo-300'; textColorClass = 'text-indigo-700'; break;
+                                    default: styleClasses = 'bg-blue-100 border-blue-300'; textColorClass = 'text-blue-700'; 
+                                }
+                                break;
+                            default: styleClasses = 'bg-gray-100 border-gray-300';
+                        }
+                    }
+                    eventDiv.classList.add(...styleClasses.split(' '));
+
+                    const descriptionEl = document.createElement('p');
+                    descriptionEl.className = `font-medium ${textColorClass}`;
+                    descriptionEl.textContent = event.description;
+                    eventDiv.appendChild(descriptionEl);
+                    
+                    modalBodyEl.appendChild(eventDiv);
+                });
+            }
+            eventModal.classList.remove('hidden');
+            eventModal.classList.add('opacity-100');
+            eventModal.querySelector('.modal-content').classList.remove('scale-95');
+            eventModal.querySelector('.modal-content').classList.add('scale-100');
+        }
+
+        function hideEventModal() {
+            eventModal.classList.add('opacity-0');
+            eventModal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                eventModal.classList.add('hidden');
+                eventModal.classList.remove('opacity-0');
+                eventModal.querySelector('.modal-content').classList.remove('scale-100');
+            }, 250);
+        }
+        
+        function updateNavigationButtons() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            prevMonthBtn.disabled = (year === 2025 && month === 0);
+            nextMonthBtn.disabled = (year === 2025 && month === 11);
+            
+            prevMonthBtn.classList.toggle('opacity-50', prevMonthBtn.disabled);
+            prevMonthBtn.classList.toggle('cursor-not-allowed', prevMonthBtn.disabled);
+            nextMonthBtn.classList.toggle('opacity-50', nextMonthBtn.disabled);
+            nextMonthBtn.classList.toggle('cursor-not-allowed', nextMonthBtn.disabled);
+        }
+
+        prevMonthBtn.addEventListener('click', () => {
+            if (currentDate.getFullYear() > 2025 || (currentDate.getFullYear() === 2025 && currentDate.getMonth() > 0)) {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            }
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+             if (currentDate.getFullYear() < 2025 || (currentDate.getFullYear() === 2025 && currentDate.getMonth() < 11)) {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            }
+        });
+
+        closeModalBtn.addEventListener('click', hideEventModal);
+        eventModal.addEventListener('click', (e) => { // Cerrar al hacer clic fuera del contenido del modal
+            if (e.target === eventModal) {
+                hideEventModal();
+            }
+        });
+
+        function loadGeneralEvents() {
+            const generalEvents = academicEvents2025.filter(event => event.type === 'general_event');
+            generalEventsListEl.innerHTML = ''; // Limpiar lista antes de cargar
+            generalEvents.forEach(event => {
+                const listItem = document.createElement('li');
+                listItem.textContent = event.description;
+                generalEventsListEl.appendChild(listItem);
+            });
+        }
+
+        // Inicialización
+        loadGeneralEvents();
+        renderCalendar();
+
+    </script>
+</body>
+</html>
